@@ -38,7 +38,7 @@ def capturar_dados():
     
 def enviar_arquivo():
     dados, momento_captura = capturar_dados()
-    nome_arquivo = momento_captura.strftime("%Y-%m-%d_%H-%m")
+    nome_arquivo = momento_captura.strftime("%Y-%m-%d_%H-%M")
     nome_arquivo = nome_arquivo+"_antena.json"
     
     dados_json = json.dumps(dados)

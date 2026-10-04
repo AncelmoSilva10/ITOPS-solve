@@ -40,7 +40,7 @@ def capturar_dados():
 
 def enviar_arquivos():
     dados, momento_captura = capturar_dados()
-    nome_arquivo = momento_captura.strftime("%Y-%m-%d_%H-%m")
+    nome_arquivo = momento_captura.strftime("%Y-%m-%d_%H-%M")
     nome_arquivo = nome_arquivo+"_firewall.json"
     
     dados_json = json.dumps(dados)
