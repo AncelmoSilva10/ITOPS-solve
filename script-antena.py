@@ -4,6 +4,7 @@ import random
 import json
 import boto3
 from datetime import datetime
+import time
 
 
 s3_client = boto3.client("s3", region_name = "us-east-1")
@@ -32,14 +33,22 @@ def capturar_dados():
     
     return antena
     
-dados_json = json.dumps(capturar_dados())
-momento_captura = datetime.now()
-nome_arquivo = momento_captura.strftime("%Y-%m-%d_%H-%m")
-nome_arquivo = nome_arquivo+"_ap01.json"
+def enviar_arquivo():
+
+    dados_json = json.dumps(capturar_dados())
+    momento_captura = datetime.now()
+    nome_arquivo = momento_captura.strftime("%Y-%m-%d_%H-%m")
+    nome_arquivo = nome_arquivo+"_ap01.json"
 
 
-s3_client.put_object(
-    Bucket = BUCKET_NAME,
-    key = "raw/"+nome_arquivo,
-    body = dados_json
-)
+    s3_client.put_object(
+        Bucket = BUCKET_NAME,
+        Key = "raw/"+nome_arquivo,
+        Body = dados_json
+    )
+    
+    print(f"Arquivo enviado: {nome_arquivo}")
+    
+while True:
+    enviar_arquivo()
+    time.sleep(60)
