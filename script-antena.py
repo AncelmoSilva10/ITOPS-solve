@@ -15,6 +15,8 @@ BUCKET_NAME = "bucket-itops-04261081"
 
 def capturar_dados():
     ID_ANTENA = getmac.get_mac_address()
+    momento_captura = datetime.now()
+    timestamp = momento_captura.strftime("%Y-%m-%d %H:%M:%S")
     dados_rede = psutil.net_io_counters()
     bytes_sent = dados_rede.bytes_sent
     bytes_recv = dados_rede.bytes_recv
@@ -24,6 +26,7 @@ def capturar_dados():
     
     antena = {
     "ID_ANTENA":ID_ANTENA,
+    "timestamp":timestamp,
     "bytes_sent":bytes_sent,
     "bytes_recv":bytes_recv,
     "cpu":cpu,
@@ -31,14 +34,14 @@ def capturar_dados():
     "active_conn":active_conn    
     }
     
-    return antena
+    return antena, momento_captura
     
 def enviar_arquivo():
-
-    dados_json = json.dumps(capturar_dados())
-    momento_captura = datetime.now()
+    dados, momento_captura = capturar_dados()
     nome_arquivo = momento_captura.strftime("%Y-%m-%d_%H-%m")
-    nome_arquivo = nome_arquivo+"_ap01.json"
+    nome_arquivo = nome_arquivo+"_antena.json"
+    
+    dados_json = json.dumps(dados)
 
 
     s3_client.put_object(
@@ -47,7 +50,7 @@ def enviar_arquivo():
         Body = dados_json
     )
     
-    print(f"Arquivo enviado: {nome_arquivo}")
+    print(f"Arquivo enviado da Antena: {nome_arquivo}")
     
 while True:
     enviar_arquivo()
