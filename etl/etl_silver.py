@@ -1,6 +1,8 @@
 import boto3
 import json
 from datetime import datetime
+import csv
+from io import StringIO
 
 s3_client = boto3.client("s3", region_name="us-east-1")
 
@@ -236,6 +238,37 @@ def calcular_diferenca_wan(dados_silver):
 
     return dados_silver
 
+def criar_csv(dados_silver):
+
+    arquivo_csv = StringIO()
+
+    campos = dados_silver[0].keys()
+
+    escritor = csv.DictWriter(
+        arquivo_csv,
+        fieldnames=campos
+    )
+
+    escritor.writeheader()
+    escritor.writerows(dados_silver)
+
+    return arquivo_csv.getvalue()   
+
+def enviar_silver(dados_silver):
+
+    dados_csv = criar_csv(dados_silver)
+
+    momento_captura = datetime.now()
+    nome_arquivo = momento_captura.strftime("%Y-%m-%d_%H-%M")
+    nome_arquivo = nome_arquivo + "_silver.csv"
+
+    s3_client.put_object(
+        Bucket=BUCKET_NAME,
+        Key="trusted/" + nome_arquivo,
+        Body=dados_csv
+    )
+
+    print(f"Arquivo enviado para Silver: {nome_arquivo}")
 
 def main():
 
@@ -269,8 +302,8 @@ def main():
     dados_silver = calcular_throughput(dados_silver)
 
     dados_silver = calcular_diferenca_wan(dados_silver)
-
-
+    
+    enviar_silver(dados_silver)
 
 
 main()
