@@ -74,6 +74,18 @@ def converter_dados(dados):
             linha["active_conn_antena"]
         )
 
+        linha["cpu_antena"] = float(
+            linha["cpu_antena"]
+        )
+
+        linha["ram_usage_antena"] = float(
+            linha["ram_usage_antena"]
+        )
+
+        linha["dropped_packets_firewall"] = int(
+            linha["dropped_packets_firewall"]
+        )
+
     return dados
 
 
@@ -81,30 +93,11 @@ def converter_dados(dados):
 
 def gerar_gold_utilizacao(dados):
 
-    for linha in dados:
-
-        linha["active_conn_antena"] = int(
-            linha["active_conn_antena"]
-        )
-
-        conexoes = linha["active_conn_antena"]
-
-        if conexoes <= LIMITE_SUBUTILIZADA:
-
-            linha["classificacao_utilizacao"] = "SUBUTILIZADA"
-
-        elif conexoes <= LIMITE_ALTA_DENSIDADE:
-
-            linha["classificacao_utilizacao"] = "NORMAL"
-
-        else:
-
-            linha["classificacao_utilizacao"] = "ALTA_DENSIDADE"
-
     arquivo_csv = StringIO()
 
     campos = [
         "timestamp",
+        "id_antena",
         "active_conn_antena",
         "classificacao_utilizacao"
     ]
@@ -118,10 +111,30 @@ def gerar_gold_utilizacao(dados):
 
     for linha in dados:
 
+        conexoes = linha["active_conn_antena"]
+
+        if conexoes <= LIMITE_SUBUTILIZADA:
+
+            classificacao = "SUBUTILIZADA"
+
+        elif conexoes <= LIMITE_ALTA_DENSIDADE:
+
+            classificacao = "NORMAL"
+
+        else:
+
+            classificacao = "ALTA_DENSIDADE"
+
         linha_gold = {
+
             "timestamp": linha["timestamp"],
-            "active_conn_antena": linha["active_conn_antena"],
-            "classificacao_utilizacao": linha["classificacao_utilizacao"]
+
+            "id_antena": linha["id_antena"],
+
+            "active_conn_antena": conexoes,
+
+            "classificacao_utilizacao": classificacao
+
         }
 
         escritor.writerow(linha_gold)
@@ -149,6 +162,7 @@ def gerar_gold_hardware(dados):
 
     campos = [
         "timestamp",
+        "id_antena",
         "cpu_antena",
         "ram_usage_antena",
         "status_cpu",
@@ -165,11 +179,19 @@ def gerar_gold_hardware(dados):
     for linha in dados:
 
         linha_gold = {
+
             "timestamp": linha["timestamp"],
+
+            "id_antena": linha["id_antena"],
+
             "cpu_antena": linha["cpu_antena"],
+
             "ram_usage_antena": linha["ram_usage_antena"],
+
             "status_cpu": linha["status_cpu"],
+
             "status_ram": linha["status_ram"]
+
         }
 
         escritor.writerow(linha_gold)
@@ -188,7 +210,7 @@ def gerar_gold_hardware(dados):
 
     print(
         f"Gold de hardware enviado: {nome_arquivo}"
-    )    
+    )
 
 
 def gerar_gold_seguranca(dados):
@@ -211,9 +233,17 @@ def gerar_gold_seguranca(dados):
     for linha in dados:
 
         linha_gold = {
+
             "timestamp": linha["timestamp"],
-            "dropped_packets_firewall": linha["dropped_packets_firewall"],
-            "top_blocked_ip_firewall": linha["top_blocked_ip_firewall"]
+
+            "dropped_packets_firewall": linha[
+                "dropped_packets_firewall"
+            ],
+
+            "top_blocked_ip_firewall": linha[
+                "top_blocked_ip_firewall"
+            ]
+
         }
 
         escritor.writerow(linha_gold)
@@ -255,9 +285,17 @@ def gerar_gold_trafego(dados):
     for linha in dados:
 
         linha_gold = {
+
             "timestamp": linha["timestamp"],
-            "throughput_mbps": linha["throughput_mbps"],
-            "diferenca_bytes_wan": linha["diferenca_bytes_wan"]
+
+            "throughput_mbps": linha[
+                "throughput_mbps"
+            ],
+
+            "diferenca_bytes_wan": linha[
+                "diferenca_bytes_wan"
+            ]
+
         }
 
         escritor.writerow(linha_gold)
@@ -287,9 +325,14 @@ def main():
 
     dados = ler_csv(files)
 
+    dados = converter_dados(dados)
+
     gerar_gold_utilizacao(dados)
+
     gerar_gold_hardware(dados)
+
     gerar_gold_seguranca(dados)
+
     gerar_gold_trafego(dados)
 
 
