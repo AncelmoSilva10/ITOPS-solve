@@ -118,7 +118,7 @@ def montar_dados_silver(
 
             "timestamp": minuto,
 
-            "id_antena": antena["ID_antena"],
+            "id_antena": antena["ID_ANTENA"],
 
             "bytes_sent_antena": antena["bytes_sent"],
 
